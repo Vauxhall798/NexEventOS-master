@@ -1,0 +1,344 @@
+Build a modern, responsive web application called "Proposal Generator" for an Event Production Company.
+
+Purpose:
+The application should allow sales teams to quickly create professional client proposals by selecting materials from an uploaded master list instead of manually typing everything.
+
+Technology:
+- React (Next.js preferred)
+- Node.js + Express (or Next.js API routes)
+- SQLite or Supabase for storage
+- Tailwind CSS
+- Clean modern UI
+- Mobile responsive
+
+======================================================
+FEATURE 1 - MATERIAL MASTER
+======================================================
+
+Create a page called "Material Master".
+
+The user should be able to upload an Excel (.xlsx) or CSV file.
+
+Columns may contain:
+
+Material Code
+Material Name
+Category
+Sub Category
+Unit
+Cost Price
+Selling Price
+Description
+
+Example:
+
+LED001
+P3 Indoor LED Wall
+LED Screen
+Indoor
+Sq.ft
+180
+250
+High resolution LED panel
+
+After upload:
+
+• Store the data in database
+• Show all materials in a searchable table
+• Allow Edit
+• Delete
+• Add New Material
+• Search
+• Filter by Category
+
+======================================================
+FEATURE 2 - CREATE PROPOSAL
+======================================================
+
+Create a page named "New Proposal".
+
+Fields:
+
+Client Name
+
+Company
+
+Contact Person
+
+Email
+
+Phone
+
+Event Name
+
+Event Date
+
+Venue
+
+Proposal Date
+
+Sales Person
+
+Notes
+
+======================================================
+ADD MATERIALS
+======================================================
+
+Instead of typing materials manually,
+
+The user clicks
+
++ Add Item
+
+A popup opens.
+
+The popup contains
+
+Search Box
+
+Category Filter
+
+Material List
+
+The user selects a material.
+
+Automatically populate
+
+Material Name
+
+Description
+
+Unit
+
+Selling Price
+
+Quantity
+
+Amount
+
+Amount =
+Selling Price × Quantity
+
+User can edit
+
+Quantity
+
+Selling Price
+
+Description
+
+User can add unlimited materials.
+
+======================================================
+CALCULATIONS
+======================================================
+
+Automatically calculate
+
+Subtotal
+
+Discount %
+
+Discount Amount
+
+Tax %
+
+Tax Amount
+
+Grand Total
+
+======================================================
+PROPOSAL PREVIEW
+======================================================
+
+Create a beautiful proposal preview.
+
+Company Logo
+
+Company Details
+
+Client Details
+
+Event Details
+
+Professional Material Table
+
+Description
+
+Qty
+
+Unit
+
+Rate
+
+Amount
+
+Summary
+
+Subtotal
+
+Discount
+
+Tax
+
+Grand Total
+
+Terms & Conditions
+
+Authorized Signature
+
+======================================================
+EXPORT
+======================================================
+
+Allow exporting to
+
+PDF
+
+Print
+
+Download
+
+======================================================
+SAVE
+======================================================
+
+Users should be able to
+
+Save Draft
+
+Edit Existing Proposal
+
+Duplicate Proposal
+
+Delete Proposal
+
+Proposal History
+
+======================================================
+DASHBOARD
+======================================================
+
+Dashboard should show
+
+Total Proposals
+
+Drafts
+
+Approved
+
+Rejected
+
+Total Proposal Value
+
+Recent Proposals
+
+======================================================
+SEARCH
+======================================================
+
+Global search by
+
+Client
+
+Proposal Number
+
+Event Name
+
+Material
+
+======================================================
+DESIGN
+======================================================
+
+Minimal UI
+
+White background
+
+Blue primary color
+
+Rounded cards
+
+Sidebar navigation
+
+Dashboard cards
+
+Material selection popup
+
+Professional proposal layout
+
+Use Tailwind CSS.
+
+======================================================
+OPTIONAL FEATURES
+======================================================
+
+Image upload for materials.
+
+Multiple proposal templates.
+
+Company logo upload.
+
+Auto Proposal Number.
+
+Version history.
+
+Duplicate proposal.
+
+Email proposal to client.
+
+======================================================
+DATABASE TABLES
+======================================================
+
+Materials
+
+Categories
+
+Clients
+
+Proposals
+
+ProposalItems
+
+Users
+
+======================================================
+FUTURE FEATURES
+======================================================
+
+Keep the architecture modular so future modules can be added easily, including:
+
+- CRM
+- Quotation Approval Workflow
+- Purchase Orders
+- Vendor Management
+- Inventory
+- Rental Tracking
+- Event Planning
+- Project Management
+- Invoice Generation
+- Payment Tracking
+- AI-powered proposal recommendations
+
+======================================================
+UI REQUIREMENTS
+======================================================
+
+The application should feel like a premium SaaS product.
+
+Use:
+- Modern dashboard
+- Left sidebar
+- Top navigation
+- Cards
+- Data tables
+- Modal dialogs
+- Responsive layout
+- Loading indicators
+- Toast notifications
+- Form validation
+- Dark mode support
+
+Generate complete production-ready code with proper folder structure, reusable React components, API endpoints, database schema, and sample data.

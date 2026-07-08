@@ -1,0 +1,224 @@
+// Proposal Generator — data model
+// Kept intentionally modular: Materials/Proposals are self-contained today,
+// but Client/User are already normalized entities so future modules
+// (CRM, Purchase Orders, Invoicing, Packages, Inventory, Activity Log,
+// Attachments, Analytics) can hang off them without a rewrite. PKs are
+// String/cuid() (not autoincrement Int) throughout — kept as-is on the
+// Postgres migration since every relation, API response, and frontend type
+// already models ids as strings.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Pooled connection (pgbouncer, port 6543) — used by the app at runtime.
+  url       = env("DATABASE_URL")
+  // Direct connection (port 5432) — used only for migrations, since
+  // pgbouncer's transaction pooling mode doesn't support the prepared
+  // statements Prisma Migrate needs.
+  directUrl = env("DIRECT_URL")
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  VIEWED
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum UserRole {
+  ADMIN
+  SALES
+  MANAGER
+  VIEWER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  // Null until a password is set (via seed or the set-password script) — an
+  // account with no hash can never authenticate, it isn't a "no password"
+  // bypass. Bcrypt hash, never the plaintext.
+  passwordHash String?
+  role         UserRole @default(SALES)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  proposals Proposal[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  materials Material[]
+}
+
+model Material {
+  id            String   @id @default(cuid())
+  materialCode  String   @unique
+  materialName  String
+  subCategory   String?
+  unit          String
+  costPrice     Decimal  @default(0) @db.Decimal(12, 2)
+  sellingPrice  Decimal  @default(0) @db.Decimal(12, 2)
+  description   String?
+  imageUrl      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  proposalItems ProposalItem[]
+
+  @@index([materialName])
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+model Client {
+  id            String   @id @default(cuid())
+  clientName    String
+  company       String?
+  contactPerson String?
+  email         String?
+  phone         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  proposals Proposal[]
+
+  @@index([clientName])
+  @@index([email])
+  @@index([company])
+}
+
+model Proposal {
+  id             String         @id @default(cuid())
+  proposalNumber String         @unique
+  status         ProposalStatus @default(DRAFT)
+
+  // Client / event details
+  clientId      String?
+  // SetNull (not the default Restrict) so deleting a Client from Client
+  // Management doesn't fail or cascade — the proposal keeps its own
+  // denormalized clientName/company/email/phone snapshot regardless.
+  client        Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientName    String
+  company       String?
+  contactPerson String?
+  email         String?
+  phone         String?
+
+  eventName    String
+  eventDate    DateTime?
+  venue        String?
+  proposalDate DateTime  @default(now())
+
+  salesPersonId   String?
+  salesPerson     User?   @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
+  salesPersonName String?
+
+  notes String?
+
+  // Totals — Decimal (not Float) so stored amounts never carry
+  // floating-point representation drift. Percent fields use a smaller
+  // scale since they're always 0-100(.xx), not currency.
+  discountPercent Decimal @default(0) @db.Decimal(5, 2)
+  discountAmount  Decimal @default(0) @db.Decimal(12, 2)
+  taxPercent      Decimal @default(0) @db.Decimal(5, 2)
+  taxAmount       Decimal @default(0) @db.Decimal(12, 2)
+  subtotal        Decimal @default(0) @db.Decimal(12, 2)
+  // Manual +/- adjustment applied after tax (e.g. rounding the grand total to
+  // a whole number) — defaults to 0 (no adjustment); editable in the UI,
+  // with a helper that suggests the nearest-whole-number correction.
+  roundOff   Decimal @default(0) @db.Decimal(8, 2)
+  grandTotal Decimal @default(0) @db.Decimal(12, 2)
+
+  termsAndConditions String? @default("1. This proposal is valid for 30 days from the proposal date.\n2. 50% advance payment required to confirm booking.\n3. Balance payment due before event execution.\n4. Any additional requirements will be charged separately.")
+
+  duplicatedFromId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items ProposalItem[]
+
+  @@index([clientName])
+  @@index([eventName])
+  @@index([status])
+  @@index([clientId])
+  @@index([salesPersonId])
+  @@index([eventDate])
+  @@index([createdAt])
+}
+
+// Single-row table (id is always "default"). Read/written via
+// src/lib/companySettings.ts — never create a second row.
+model CompanySettings {
+  id String @id @default("default")
+
+  companyName String @default("Your Company Name")
+  logoUrl     String?
+  gstNumber   String?
+  panNumber   String?
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+
+  bankName          String?
+  bankAccountName   String?
+  bankAccountNumber String?
+  bankIfscCode      String?
+  bankBranch        String?
+
+  authorizedSignatory String?
+  signatureUrl        String?
+
+  defaultTaxPercent Decimal @default(18) @db.Decimal(5, 2)
+  currency          String  @default("INR")
+
+  // Used by generateProposalNumber() to build "<prefix>-<year>-<seq>" (e.g. "EVT-2026-0001").
+  // Changing this does not renumber existing proposals — it only affects new ones.
+  proposalPrefix String @default("PROP")
+
+  footerText         String?
+  termsAndConditions String? @default("1. This proposal is valid for 30 days from the proposal date.\n2. 50% advance payment required to confirm booking.\n3. Balance payment due before event execution.\n4. Any additional requirements will be charged separately.")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProposalItem {
+  id         String   @id @default(cuid())
+  proposalId String
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  materialId String?
+  material   Material? @relation(fields: [materialId], references: [id], onDelete: SetNull)
+
+  materialName String
+  description  String?
+  unit         String
+  sellingPrice Decimal @db.Decimal(12, 2)
+  quantity     Float
+  amount       Decimal @db.Decimal(12, 2)
+  sortOrder    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([proposalId])
+  @@index([materialId])
+}
