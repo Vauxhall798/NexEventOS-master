@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/ToastProvider";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { APP_INFO } from "@/lib/appInfo";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ToastProvider>
           </ThemeProvider>
         </AuthSessionProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
