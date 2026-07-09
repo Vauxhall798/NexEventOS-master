@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/ToastProvider";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { APP_INFO } from "@/lib/appInfo";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: APP_INFO.productName,
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ToastProvider>
           </ThemeProvider>
         </AuthSessionProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
