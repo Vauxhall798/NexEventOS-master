@@ -9,6 +9,8 @@ import { findOrCreateClient } from "@/lib/clients";
 import { ApiError, withApiErrorHandling } from "@/lib/apiError";
 import { requireRole } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export const GET = withApiErrorHandling(async (req: NextRequest) => {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim();

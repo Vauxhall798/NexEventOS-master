@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { withApiErrorHandling } from "@/lib/apiError";
 
+export const dynamic = "force-dynamic";
+
 export const GET = withApiErrorHandling(async (req: NextRequest) => {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim();

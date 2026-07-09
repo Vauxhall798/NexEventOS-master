@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { withApiErrorHandling } from "@/lib/apiError";
 
+export const dynamic = "force-dynamic";
+
 interface SearchResult {
   type: "proposal" | "client" | "material";
   id: string;
