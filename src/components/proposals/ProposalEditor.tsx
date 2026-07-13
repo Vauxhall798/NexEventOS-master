@@ -89,6 +89,62 @@ export function ProposalEditor({ proposal, defaultTaxPercent, settings }: Propos
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedProposalNumber, setSubmittedProposalNumber] = useState("");
   const [submittedProposal, setSubmittedProposal] = useState<Proposal | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  // When a client submits a proposal, generate a PDF from the rendered preview
+  useEffect(() => {
+    let mounted = true;
+    let url: string | null = null;
+
+    async function generatePdf() {
+      if (!submittedProposal) return;
+      setGeneratingPdf(true);
+      try {
+        const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([import("jspdf"), import("html2canvas")]);
+        // Wait a tick for the DOM to render the preview
+        await new Promise((r) => setTimeout(r, 100));
+        const node = document.getElementById("print-area");
+        if (!node) return;
+
+        const scale = 2;
+        const canvas = await html2canvas(node, { scale, useCORS: true, backgroundColor: "#ffffff" });
+        const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+        // replicate addPaginatedImage logic
+        const imgData = canvas.toDataURL("image/png");
+        const pageHeight = 841.89; // A4 pt height
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgHeight = (imgProps.height * pdf.internal.pageSize.getWidth()) / imgProps.width;
+        let position = 0;
+        pdf.addImage(imgData, "PNG", 0, position, pdf.internal.pageSize.getWidth(), imgHeight);
+        // If content taller than one page, add pages
+        while (imgHeight - position > pageHeight) {
+          position -= pageHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "PNG", 0, position, pdf.internal.pageSize.getWidth(), imgHeight);
+        }
+
+        const blob = pdf.output("blob");
+        url = URL.createObjectURL(blob);
+        if (mounted) setPdfUrl(url);
+      } catch (e) {
+        // ignore
+      } finally {
+        if (mounted) setGeneratingPdf(false);
+      }
+    }
+
+    generatePdf();
+
+    return () => {
+      mounted = false;
+      if (url) URL.revokeObjectURL(url);
+      setPdfUrl(null);
+      setGeneratingPdf(false);
+    };
+    // only run when submittedProposal changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submittedProposal]);
 
   const [form, setForm] = useState<FormState>(buildInitialForm(proposal));
   const [items, setItems] = useState<ProposalItem[]>(proposal?.items ?? []);
@@ -261,6 +317,16 @@ export function ProposalEditor({ proposal, defaultTaxPercent, settings }: Propos
           <div className="max-w-4xl mx-auto">
             <ProposalPreviewActions proposal={submittedProposal} />
             <ProposalPreviewDocument proposal={submittedProposal} settings={settings ?? ({} as CompanySettings)} />
+            <div className="mt-6">
+              {generatingPdf && (
+                <div className="rounded-md bg-slate-50 p-3 text-sm text-slate-600">Generating PDF preview…</div>
+              )}
+              {pdfUrl && (
+                <div className="mt-3 rounded-lg border overflow-hidden">
+                  <iframe src={pdfUrl} title="Proposal PDF" className="w-full h-[800px]" />
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
