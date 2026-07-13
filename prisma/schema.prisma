@@ -107,6 +107,7 @@ model Proposal {
   id             String         @id @default(cuid())
   proposalNumber String         @unique
   status         ProposalStatus @default(DRAFT)
+  isReviewed     Boolean        @default(true)
 
   // Client / event details
   clientId      String?
