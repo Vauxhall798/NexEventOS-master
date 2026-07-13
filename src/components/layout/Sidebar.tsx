@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { href: "/proposals/new", label: "New Proposal", icon: PlusIcon, hideForViewer: true },
   { href: "/clients", label: "Clients", icon: UsersIcon },
   { href: "/materials", label: "Material Master", icon: BoxIcon },
+  { href: "/share", label: "Share", icon: ShareIcon },
   { href: "/settings/company", label: "Settings", icon: SettingsIcon, adminOnly: true },
 ];
 
@@ -126,6 +127,13 @@ function SettingsIcon(props: React.SVGProps<SVGSVGElement>) {
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+function ShareIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8.684 13.342C9.589 12.938 10 12.502 10 11c0-1.657-.895-3-2-3s-2 1.343-2 3 .895 3 2 3c.464 0 .891-.055 1.273-.157m4.632-4.157c.337-1.11.985-2.09 1.854-2.763.111-.096.215-.189.314-.276m0 0a6 6 0 010 8.496m-6.632-2.736a6 6 0 010-2.88m11.243-9.907a21.994 21.994 0 00-9.391 2.247m-5.24 13.368A5.996 5.996 0 006.5 20c0 1.657.895 3 2 3s2-1.343 2-3c0-.108-.007-.216-.02-.322m-7.422-13.11l2.102 1.212m15.224 2.7l-2.102 1.212m0 0l2.102 1.212M5.504 12l2.102 1.212M3.44 5.571l1.636 .945m12.332-1.116l1.636 .945" />
     </svg>
   );
 }
