@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useState, useEffect } from "react";
+import { useTheme } from "@/components/ThemeProvider";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -17,6 +18,16 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    try {
+      setTheme("light");
+    } catch (e) {
+      // ignore
+    }
+  }, [setTheme]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

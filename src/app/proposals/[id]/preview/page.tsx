@@ -4,6 +4,8 @@ import { getCompanySettings } from "@/lib/companySettings";
 import { ProposalPreviewDocument } from "@/components/proposals/ProposalPreviewDocument";
 import { ProposalPreviewActions } from "@/components/proposals/ProposalPreviewActions";
 import type { CompanySettings, Proposal } from "@/types";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export default async function ProposalPreviewPage({ params }: { params: { id: string } }) {
   const [proposal, settings] = await Promise.all([
@@ -15,6 +17,17 @@ export default async function ProposalPreviewPage({ params }: { params: { id: st
   ]);
 
   if (!proposal) notFound();
+
+  // If an admin/manager is viewing, mark as reviewed
+  try {
+    const sess: any = await getServerSession(authOptions as any);
+    if (sess && ["ADMIN", "MANAGER"].includes(sess.user?.role) && !proposal.isReviewed) {
+      await prisma.proposal.update({ where: { id: params.id }, data: { isReviewed: true } });
+      proposal.isReviewed = true;
+    }
+  } catch (e) {
+    // ignore
+  }
 
   const serializedProposal: Proposal = JSON.parse(JSON.stringify(proposal));
   const serializedSettings: CompanySettings = JSON.parse(JSON.stringify(settings));

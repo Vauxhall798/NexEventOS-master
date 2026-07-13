@@ -108,6 +108,8 @@ export interface Proposal {
   createdAt: string;
   updatedAt: string;
   items: ProposalItem[];
+  // whether an admin has reviewed this proposal
+  isReviewed?: boolean;
 }
 
 export interface DashboardStats {

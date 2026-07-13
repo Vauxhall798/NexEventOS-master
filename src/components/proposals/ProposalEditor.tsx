@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -10,14 +10,17 @@ import { MaterialPickerModal } from "./MaterialPickerModal";
 import { ClientAutocomplete } from "./ClientAutocomplete";
 import { ProposalItemsTable } from "./ProposalItemsTable";
 import { ProposalSummary } from "./ProposalSummary";
+import { ProposalPreviewActions } from "./ProposalPreviewActions";
+import { ProposalPreviewDocument } from "./ProposalPreviewDocument";
 import { computeTotals } from "@/lib/calculations";
 import { useToast } from "@/components/ToastProvider";
-import type { Client, Material, Proposal, ProposalItem } from "@/types";
+import type { Client, Material, Proposal, ProposalItem, CompanySettings } from "@/types";
 
 interface ProposalEditorProps {
   proposal?: Proposal;
   /** Company's configured default tax rate — seeds a new proposal's tax %. Ignored when editing. */
   defaultTaxPercent?: number;
+  settings?: CompanySettings;
 }
 
 interface FormState {
@@ -59,15 +62,33 @@ function makeTempId() {
   return `tmp-${Math.random().toString(36).slice(2)}-${Date.now()}`;
 }
 
-export function ProposalEditor({ proposal, defaultTaxPercent }: ProposalEditorProps) {
+export function ProposalEditor({ proposal, defaultTaxPercent, settings }: ProposalEditorProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const { data: session } = useSession();
   const isAuthenticated = !!session;
   const isEditing = !!proposal;
 
+  // Force light theme for public (unauthenticated) proposal submissions so PDF preview matches printed output
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isAuthenticated) {
+      try {
+        // dynamic import of the hook to avoid SSR issues
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { useTheme } = require("@/components/ThemeProvider");
+        // @ts-ignore
+        const ctx = useTheme();
+        if (ctx?.setTheme) ctx.setTheme("light");
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [isAuthenticated]);
+
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedProposalNumber, setSubmittedProposalNumber] = useState("");
+  const [submittedProposal, setSubmittedProposal] = useState<Proposal | null>(null);
 
   const [form, setForm] = useState<FormState>(buildInitialForm(proposal));
   const [items, setItems] = useState<ProposalItem[]>(proposal?.items ?? []);
@@ -195,6 +216,7 @@ export function ProposalEditor({ proposal, defaultTaxPercent }: ProposalEditorPr
 
       if (!isAuthenticated) {
         setSubmittedProposalNumber(data.proposal.proposalNumber);
+        setSubmittedProposal(data.proposal);
         setIsSubmitted(true);
         return;
       }
@@ -213,23 +235,34 @@ export function ProposalEditor({ proposal, defaultTaxPercent }: ProposalEditorPr
 
   if (isSubmitted) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center max-w-xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-8 mt-12 animate-fade-in">
-        <div className="rounded-full bg-emerald-100 p-4 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 mb-6">
-          <svg className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center max-w-xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-8 mt-6 animate-fade-in">
+          <div className="rounded-full bg-emerald-100 p-4 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 mb-4">
+            <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Proposal Sent!</h2>
+          <p className="text-slate-600 dark:text-slate-400 max-w-md mb-4 text-sm">
+            Thank you — we've saved your proposal and notified the admin team for review.
+          </p>
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl px-6 py-3 mb-4 w-full border border-slate-200/60 dark:border-slate-700/60">
+            <span className="text-xs text-slate-400 dark:text-slate-500 block font-semibold uppercase tracking-wider mb-1">Proposal Reference</span>
+            <span className="text-xl font-bold text-slate-800 dark:text-slate-200 font-mono">{submittedProposalNumber}</span>
+          </div>
+          <div className="w-full max-w-xl">
+            <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
+              Submit Another Proposal
+            </Button>
+          </div>
         </div>
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Proposal Sent!</h2>
-        <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6 text-sm">
-          Thank you for providing your event details. We have saved your proposal as a draft and sent it to the admin team for review.
-        </p>
-        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl px-6 py-4 mb-8 w-full border border-slate-200/60 dark:border-slate-700/60">
-          <span className="text-xs text-slate-400 dark:text-slate-500 block font-semibold uppercase tracking-wider mb-1">Proposal Reference</span>
-          <span className="text-2xl font-bold text-slate-800 dark:text-slate-200 font-mono">{submittedProposalNumber}</span>
-        </div>
-        <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
-          Submit Another Proposal
-        </Button>
+
+        {submittedProposal && (
+          <div className="max-w-4xl mx-auto">
+            <ProposalPreviewActions proposal={submittedProposal} />
+            <ProposalPreviewDocument proposal={submittedProposal} settings={settings ?? ({} as CompanySettings)} />
+          </div>
+        )}
       </div>
     );
   }

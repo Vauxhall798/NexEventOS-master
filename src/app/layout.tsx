@@ -23,8 +23,8 @@ export const viewport = {
 const themeScript = `(function() {
   try {
     var stored = window.localStorage.getItem('theme');
-    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    var theme = stored === 'light' || stored === 'dark' ? stored : (prefersDark ? 'dark' : 'light');
+    // default to light when no stored preference exists
+    var theme = stored === 'light' || stored === 'dark' ? stored : 'light';
     document.documentElement.classList.toggle('dark', theme === 'dark');
   } catch (e) {
     // ignore

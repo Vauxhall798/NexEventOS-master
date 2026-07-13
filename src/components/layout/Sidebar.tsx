@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { APP_INFO, copyrightLine } from "@/lib/appInfo";
 
@@ -29,6 +30,34 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = session?.user?.role;
+  const [unreviewedCount, setUnreviewedCount] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    let timer: number | undefined;
+
+    async function fetchCount() {
+      try {
+        // only poll for admins/managers
+        if (!session || !["ADMIN", "MANAGER"].includes(role || "")) return;
+        const res = await fetch("/api/proposals/unreviewed");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!mounted) return;
+        setUnreviewedCount(Number(data.count) || 0);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    fetchCount();
+    timer = window.setInterval(fetchCount, 30_000);
+    return () => {
+      mounted = false;
+      if (timer) clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, role]);
 
   const visibleItems = navItems.filter((item) => {
     if (item.adminOnly && role !== "ADMIN") return false;
@@ -67,7 +96,15 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
                 )}
               >
                 <Icon className="h-5 w-5" />
-                {item.label}
+                <div className="flex items-center gap-2">
+                  <span>{item.label}</span>
+                  {item.href === "/proposals" && unreviewedCount > 0 && ["ADMIN","MANAGER"].includes(role || "") && (
+                    <span className="ml-1 inline-flex h-3 w-3 items-center justify-center">
+                      <span className="absolute inline-flex h-3 w-3 rounded-full bg-red-500 animate-ping opacity-60"></span>
+                      <span className="relative inline-flex h-3 w-3 rounded-full bg-red-600 ring-2 ring-white dark:ring-slate-900"></span>
+                    </span>
+                  )}
+                </div>
               </Link>
             );
           })}

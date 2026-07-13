@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { ProposalEditor } from "@/components/proposals/ProposalEditor";
 import type { Proposal } from "@/types";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export default async function EditProposalPage({ params }: { params: { id: string } }) {
   const proposal = await prisma.proposal.findUnique({
@@ -10,6 +12,17 @@ export default async function EditProposalPage({ params }: { params: { id: strin
   });
 
   if (!proposal) notFound();
+
+  // mark reviewed when admin/manager opens the edit page
+  try {
+    const sess: any = await getServerSession(authOptions as any);
+    if (sess && ["ADMIN", "MANAGER"].includes(sess.user?.role) && !proposal.isReviewed) {
+      await prisma.proposal.update({ where: { id: params.id }, data: { isReviewed: true } });
+      proposal.isReviewed = true;
+    }
+  } catch (e) {
+    // ignore
+  }
 
   const serialized: Proposal = JSON.parse(JSON.stringify(proposal));
 

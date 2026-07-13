@@ -135,7 +135,12 @@ export default function ProposalHistoryPage() {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {proposals.map((p) => (
                     <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                      <td className="py-3 pr-4 font-mono text-xs text-slate-500 dark:text-slate-400">{p.proposalNumber}</td>
+                      <td className="py-3 pr-4 font-mono text-xs text-slate-500 dark:text-slate-400">
+                        {p.proposalNumber}
+                        {!p.isReviewed && (
+                          <span className="ml-2 inline-flex items-center rounded-full bg-red-600 text-white text-[10px] px-2 py-0.5 font-medium">NEW</span>
+                        )}
+                      </td>
                       <td className="py-3 pr-4">
                         <div className="font-medium text-slate-800 dark:text-slate-100">{p.clientName}</div>
                         {p.company && <div className="text-xs text-slate-400">{p.company}</div>}

@@ -125,6 +125,8 @@ export const POST = withApiErrorHandling(async (req: NextRequest) => {
 
       return tx.proposal.create({
         data: {
+          // mark reviewed based on whether the request is authenticated
+          isReviewed: !!session,
           proposalNumber,
           status: body.status === "SENT" ? "SENT" : "DRAFT",
           clientId: client.id,
