@@ -36,6 +36,13 @@ export default async function ProposalPreviewPage({ params }: { params: { id: st
     <div>
       <ProposalPreviewActions proposal={serializedProposal} />
       <ProposalPreviewDocument proposal={serializedProposal} settings={serializedSettings} />
+      {/* Notify other tabs/components that this proposal has been reviewed */}
+      {/* Client component posts a BroadcastChannel message */}
+      {/* @ts-ignore server -> client component import */}
+      {
+        // Dynamically import the client notifier so this server file stays valid
+      }
+      <script dangerouslySetInnerHTML={{ __html: `(() => { try { const c = new BroadcastChannel('nexeventos-proposals'); c.postMessage({type:'reviewed', id: '${params.id}'}); c.close(); } catch(e) { try { localStorage.setItem('nexeventos:proposal-reviewed', JSON.stringify({id:'${params.id}', t:Date.now()})); } catch(_){} } })()` }} />
     </div>
   );
 }

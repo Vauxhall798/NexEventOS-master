@@ -33,6 +33,7 @@ export default async function EditProposalPage({ params }: { params: { id: strin
         <p className="text-sm text-slate-500 dark:text-slate-400">Update client, event, or material details below.</p>
       </div>
       <ProposalEditor proposal={serialized} />
+      <script dangerouslySetInnerHTML={{ __html: `(() => { try { const c = new BroadcastChannel('nexeventos-proposals'); c.postMessage({type:'reviewed', id: '${params.id}'}); c.close(); } catch(e) { try { localStorage.setItem('nexeventos:proposal-reviewed', JSON.stringify({id:'${params.id}', t:Date.now()})); } catch(_){} } })()` }} />
     </div>
   );
 }

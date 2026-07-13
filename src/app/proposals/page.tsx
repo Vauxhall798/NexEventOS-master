@@ -45,6 +45,37 @@ export default function ProposalHistoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, statusFilter]);
 
+  useEffect(() => {
+    // Listen for reviewed notifications and update local list
+    try {
+      const channel = new BroadcastChannel("nexeventos-proposals");
+      channel.addEventListener("message", (ev) => {
+        try {
+          const msg = (ev as any).data;
+          if (msg && msg.type === "reviewed") {
+            setProposals((prev) => prev.map((p) => (p.id === msg.id ? { ...p, isReviewed: true } : p)));
+          }
+        } catch (e) {
+          // ignore
+        }
+      });
+      return () => channel.close();
+    } catch (e) {
+      // fallback: storage events
+      const handler = (ev: StorageEvent) => {
+        if (ev.key === "nexeventos:proposal-reviewed" && ev.newValue) {
+          try {
+            const obj = JSON.parse(ev.newValue);
+            setProposals((prev) => prev.map((p) => (p.id === obj.id ? { ...p, isReviewed: true } : p)));
+          } catch (er) {}
+        }
+      };
+      window.addEventListener("storage", handler);
+      return () => window.removeEventListener("storage", handler);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handleDelete() {
     if (!deleting) return;
     setDeleteLoading(true);

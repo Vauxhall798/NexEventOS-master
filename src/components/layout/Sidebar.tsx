@@ -52,9 +52,36 @@ export function Sidebar({ mobileOpen, onCloseMobile }: { mobileOpen: boolean; on
 
     fetchCount();
     timer = window.setInterval(fetchCount, 30_000);
+    function handleMessage(ev: MessageEvent) {
+      try {
+        const msg = ev.data;
+        if (msg && msg.type === "reviewed") {
+          // refetch to keep accurate
+          fetchCount();
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // setup BroadcastChannel if available
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel("nexeventos-proposals");
+      channel.addEventListener("message", (ev) => handleMessage(ev as any));
+    } catch (e) {
+      // fallback: listen for storage events
+      window.addEventListener("storage", (ev) => {
+        if (ev.key === "nexeventos:proposal-reviewed") fetchCount();
+      });
+    }
+
     return () => {
       mounted = false;
       if (timer) clearInterval(timer);
+      try {
+        if (channel) channel.close();
+      } catch (e) {}
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, role]);
