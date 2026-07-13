@@ -7,7 +7,8 @@ import { getCompanySettings } from "@/lib/companySettings";
 import { isProposalStatus } from "@/lib/proposalStatus";
 import { findOrCreateClient } from "@/lib/clients";
 import { ApiError, withApiErrorHandling } from "@/lib/apiError";
-import { requireRole } from "@/lib/auth";
+import { requireRole, authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -81,8 +82,18 @@ function validateItems(rawItems: unknown): ProposalItemInput[] {
 }
 
 export const POST = withApiErrorHandling(async (req: NextRequest) => {
-  await requireRole(["ADMIN", "SALES", "MANAGER"]);
+  const session = await getServerSession(authOptions);
   const body = await req.json();
+
+  if (!session) {
+    // Unauthenticated creation is allowed, but always forced to DRAFT
+    body.status = "DRAFT";
+  } else {
+    // Authenticated creation requires one of these roles
+    if (!["ADMIN", "SALES", "MANAGER"].includes(session.user.role)) {
+      throw new ApiError(403, "You don't have permission to do this");
+    }
+  }
 
   const clientName = String(body.clientName ?? "").trim();
   const eventName = String(body.eventName ?? "").trim();

@@ -12,9 +12,22 @@ export async function middleware(req: NextRequest) {
   const isApiRequest = req.nextUrl.pathname.startsWith("/api/");
 
   if (!token) {
+    const pathname = req.nextUrl.pathname;
+    const method = req.method;
+
+    // Allow unauthenticated API calls for creating a proposal and picking materials
+    const isPublicApi =
+      (pathname === "/api/proposals" && method === "POST") ||
+      (pathname === "/api/materials" && method === "GET") ||
+      (pathname === "/api/categories" && method === "GET");
+
     if (isApiRequest) {
+      if (isPublicApi) {
+        return NextResponse.next();
+      }
       return NextResponse.json({ error: "You must be signed in" }, { status: 401 });
     }
+
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
@@ -28,9 +41,10 @@ export const config = {
     /*
      * Protect everything except:
      * - /login (the sign-in page itself)
+     * - /proposals/new (public proposal page)
      * - /api/auth/* (NextAuth's own endpoints)
      * - Next.js internals and static assets
      */
-    "/((?!login|api/auth|_next/static|_next/image|favicon.ico|icon.svg).*)",
+    "/((?!login|proposals/new|api/auth|_next/static|_next/image|favicon.ico|icon.svg).*)",
   ],
 };

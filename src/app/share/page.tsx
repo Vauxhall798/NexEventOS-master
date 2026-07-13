@@ -5,8 +5,8 @@ import QRCode from "qrcode.react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
-const SHARE_URL = "https://nex-event-os-master-seven.vercel.app/proposals";
-const QR_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes in milliseconds
+const SHARE_URL = "https://nex-event-os-master-seven.vercel.app/proposals/new";
+const QR_EXPIRATION_TIME = 60 * 60 * 1000; // 1 hour in milliseconds
 
 export default function SharePage() {
   const [isQRValid, setIsQRValid] = useState(true);
@@ -68,8 +68,8 @@ export default function SharePage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Share Proposals</h1>
-        <p className="mt-1 text-slate-600 dark:text-slate-400">Generate a QR code to share the proposals page</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Share Proposal Form</h1>
+        <p className="mt-1 text-slate-600 dark:text-slate-400">Generate a QR code to share the new proposal page</p>
       </div>
 
       {/* QR Code Card */}
@@ -134,8 +134,8 @@ export default function SharePage() {
 
           {/* Info Message */}
           <div className="w-full rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-            <p className="font-medium">⚠️ QR codes expire after 10 minutes</p>
-            <p className="mt-1">For security reasons, each QR code is only valid for 10 minutes from generation. Generate a new one to continue sharing.</p>
+            <p className="font-medium">⚠️ QR codes expire after 1 hour</p>
+            <p className="mt-1">For security reasons, each QR code is only valid for 1 hour from generation. Generate a new one to continue sharing.</p>
           </div>
         </CardBody>
       </Card>
@@ -151,7 +151,7 @@ export default function SharePage() {
               <span className="flex-shrink-0 rounded-full bg-brand-100 text-brand-600 w-6 h-6 flex items-center justify-center font-semibold dark:bg-brand-900/30 dark:text-brand-400">
                 1
               </span>
-              <span>Click "Generate New QR" to create a fresh QR code valid for 10 minutes</span>
+              <span>Click "Generate New QR" to create a fresh QR code valid for 1 hour</span>
             </li>
             <li className="flex gap-3">
               <span className="flex-shrink-0 rounded-full bg-brand-100 text-brand-600 w-6 h-6 flex items-center justify-center font-semibold dark:bg-brand-900/30 dark:text-brand-400">
@@ -163,13 +163,13 @@ export default function SharePage() {
               <span className="flex-shrink-0 rounded-full bg-brand-100 text-brand-600 w-6 h-6 flex items-center justify-center font-semibold dark:bg-brand-900/30 dark:text-brand-400">
                 3
               </span>
-              <span>Recipients can scan the QR code or use the direct link to access proposals</span>
+              <span>Recipients can scan the QR code or use the direct link to access the proposal page</span>
             </li>
             <li className="flex gap-3">
               <span className="flex-shrink-0 rounded-full bg-brand-100 text-brand-600 w-6 h-6 flex items-center justify-center font-semibold dark:bg-brand-900/30 dark:text-brand-400">
                 4
               </span>
-              <span>After 10 minutes, the QR code expires for security. Generate a new one to continue sharing</span>
+              <span>After 1 hour, the QR code expires for security. Generate a new one to continue sharing</span>
             </li>
           </ul>
         </CardBody>
